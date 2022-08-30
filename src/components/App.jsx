@@ -17,6 +17,7 @@ export class App extends Component {
     currentArticle: {},
     isLoading: false,
     errors: null,
+    totalArticles: null,
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -26,10 +27,18 @@ export class App extends Component {
         .then(response => {
           const prevArticles = this.state.articles;
           const nextArticles = response.data.hits;
+          const allArticles = response.data.total;
           this.setState({
+            totalArticles: allArticles,
             isLoading: false,
             articles: [...prevArticles, ...nextArticles],
           });
+          console.log(
+            'total:',
+            response.data.total,
+            'state:',
+            this.state.articles.length
+          );
         })
         .catch(error => this.setState({ errors: error }));
     }
@@ -46,7 +55,6 @@ export class App extends Component {
     }
     if (search.length === 0) {
       Notify.warning('Your query is empty!');
-      console.log('empty query');
     }
   };
   onLoadMore = e => {
@@ -66,8 +74,14 @@ export class App extends Component {
     console.log(this.state.showModal);
   };
   render() {
-    const { articles, showModal, currentArticle, isLoading, errors } =
-      this.state;
+    const {
+      articles,
+      showModal,
+      currentArticle,
+      isLoading,
+      errors,
+      totalArticles,
+    } = this.state;
     return (
       <Barstyle>
         <Searchbar onSubmit={this.onSubmit} />
@@ -80,10 +94,12 @@ export class App extends Component {
                 dataForModal={this.dataForModal}
               />
             </ImageGallery>
-            <LoadMore onClick={this.onLoadMore} isLoading={isLoading} />
+            {totalArticles > articles.length && totalArticles > 20 && (
+              <LoadMore onClick={this.onLoadMore} isLoading={isLoading} />
+            )}
           </>
         )}
-        {showModal && articles.length > 20 && (
+        {showModal && (
           <Modal toggleModal={this.toggleModal}>
             <img src={currentArticle.largeImageURL} alt={currentArticle.tags} />
           </Modal>

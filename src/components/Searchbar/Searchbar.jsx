@@ -1,3 +1,4 @@
+import { CgSearch } from 'react-icons/cg';
 import {
   SearchForm,
   SearchFormButton,
@@ -11,6 +12,7 @@ export const Searchbar = ({ onSubmit }) => {
     <SearchHeader>
       <SearchForm onSubmit={onSubmit}>
         <SearchFormButton type="submit">
+          <CgSearch />
           <SearchFormButtonLabel>Search</SearchFormButtonLabel>
         </SearchFormButton>
 

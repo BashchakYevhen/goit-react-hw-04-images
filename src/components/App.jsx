@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import { Notify } from 'notiflix';
 import { GlobalStyle } from 'globalStyle';
 import { Barstyle } from './App.style';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -6,7 +7,7 @@ import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 import { LoadMore } from './LoadMore/LoadMore';
 import { Modal } from './Modal/Modal';
-import { baseFetch, updateFetch } from 'Service/Fetch';
+import { updateFetch } from 'Service/Fetch';
 export class App extends Component {
   state = {
     page: 1,
@@ -14,33 +15,46 @@ export class App extends Component {
     q: '',
     showModal: false,
     currentArticle: {},
+    isLoading: false,
+    errors: null,
   };
-  componentDidMount() {
-    baseFetch().then(response => {
-      this.setState({ articles: response.data.hits });
-    });
-  }
+
   componentDidUpdate(prevProps, prevState) {
     const { q, page } = this.state;
     if (prevState.q !== q || prevState.page !== page) {
-      updateFetch(q, page).then(response => {
-        const prevArticles = this.state.articles;
-        const nextArticles = response.data.hits;
-        this.setState({ articles: [...prevArticles, ...nextArticles] });
-      });
+      updateFetch(q, page)
+        .then(response => {
+          const prevArticles = this.state.articles;
+          const nextArticles = response.data.hits;
+          this.setState({
+            isLoading: false,
+            articles: [...prevArticles, ...nextArticles],
+          });
+        })
+        .catch(error => this.setState({ errors: error }));
     }
   }
   onSubmit = e => {
     e.preventDefault();
-    this.setState({
-      q: e.currentTarget.input.value,
-      page: 1,
-      articles: [],
-    });
+    const search = e.currentTarget.input.value.trim();
+    if (search.length !== 0) {
+      this.setState({
+        q: search,
+        page: 1,
+        articles: [],
+      });
+    }
+    if (search.length === 0) {
+      Notify.warning('Your query is empty!');
+      console.log('empty query');
+    }
   };
   onLoadMore = e => {
     e.preventDefault();
-    this.setState(state => ({ page: state.page + 1 }));
+    this.setState(state => ({
+      page: state.page + 1,
+      isLoading: true,
+    }));
   };
   dataForModal = (tags, largeImageURL) => {
     this.setState({ currentArticle: { tags, largeImageURL } });
@@ -52,23 +66,24 @@ export class App extends Component {
     console.log(this.state.showModal);
   };
   render() {
-    const { articles, showModal, currentArticle } = this.state;
+    const { articles, showModal, currentArticle, isLoading, errors } =
+      this.state;
     return (
       <Barstyle>
         <Searchbar onSubmit={this.onSubmit} />
         {articles.length > 0 && (
           <>
-            <ImageGallery>
+            <ImageGallery isLoading={isLoading} errors={errors}>
               <ImageGalleryItem
                 articles={articles}
                 toggleModal={this.toggleModal}
                 dataForModal={this.dataForModal}
               />
             </ImageGallery>
-            <LoadMore onClick={this.onLoadMore} />
+            <LoadMore onClick={this.onLoadMore} isLoading={isLoading} />
           </>
         )}
-        {showModal && (
+        {showModal && articles.length > 20 && (
           <Modal toggleModal={this.toggleModal}>
             <img src={currentArticle.largeImageURL} alt={currentArticle.tags} />
           </Modal>

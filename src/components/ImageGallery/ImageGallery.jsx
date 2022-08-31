@@ -1,6 +1,6 @@
 import { GalleryList } from './ImageGallery.style';
 
-export const ImageGallery = ({ children, isLoading, errors }) => {
+export const ImageGallery = ({ children, errors }) => {
   if (errors) {
   }
 

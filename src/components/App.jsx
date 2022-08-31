@@ -1,5 +1,4 @@
 import { Component } from 'react';
-import { Notify } from 'notiflix';
 import { GlobalStyle } from 'globalStyle';
 import { Barstyle } from './App.style';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -7,7 +6,7 @@ import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 import { LoadMore } from './LoadMore/LoadMore';
 import { Modal } from './Modal/Modal';
-import { updateFetch } from 'Service/Fetch';
+import { updateFetch } from 'service/fetch';
 export class App extends Component {
   state = {
     page: 1,
@@ -33,32 +32,18 @@ export class App extends Component {
             isLoading: false,
             articles: [...prevArticles, ...nextArticles],
           });
-          console.log(
-            'total:',
-            response.data.total,
-            'state:',
-            this.state.articles.length
-          );
         })
         .catch(error => this.setState({ errors: error }));
     }
   }
-  onSubmit = e => {
-    e.preventDefault();
-    const search = e.currentTarget.input.value.trim();
-    if (search.length !== 0) {
-      this.setState({
-        q: search,
-        page: 1,
-        articles: [],
-      });
-    }
-    if (search.length === 0) {
-      Notify.warning('Your query is empty!');
-    }
+  onSubmit = search => {
+    this.setState({
+      q: search,
+      page: 1,
+      articles: [],
+    });
   };
   onLoadMore = e => {
-    e.preventDefault();
     this.setState(state => ({
       page: state.page + 1,
       isLoading: true,
@@ -71,7 +56,6 @@ export class App extends Component {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
     }));
-    console.log(this.state.showModal);
   };
   render() {
     const {
@@ -87,7 +71,7 @@ export class App extends Component {
         <Searchbar onSubmit={this.onSubmit} />
         {articles.length > 0 && (
           <>
-            <ImageGallery isLoading={isLoading} errors={errors}>
+            <ImageGallery errors={errors}>
               <ImageGalleryItem
                 articles={articles}
                 toggleModal={this.toggleModal}

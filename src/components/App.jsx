@@ -6,7 +6,7 @@ import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 import { LoadMore } from './LoadMore/LoadMore';
 import { Modal } from './Modal/Modal';
-import { updateFetch } from 'service/fetch';
+import { updateFetch } from '../service/fetch';
 export class App extends Component {
   state = {
     page: 1,

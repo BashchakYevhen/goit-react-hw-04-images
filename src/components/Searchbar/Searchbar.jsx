@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { PropTypes } from 'prop-types';
 import { CgSearch } from 'react-icons/cg';
 import { Notify } from 'notiflix';
 import {
@@ -9,36 +9,39 @@ import {
   SearchHeader,
 } from './Searchbar.style';
 
-export class Searchbar extends Component {
-  handleSubmit = e => {
+export const Searchbar = ({ onSubmit }) => {
+  const handleSubmit = e => {
     e.preventDefault();
     const search = e.currentTarget.input.value.trim();
     if (search.length !== 0) {
-      this.props.onSubmit(search);
+      onSubmit(search);
     }
 
     if (search.length === 0) {
       Notify.warning('Your query is empty!');
     }
   };
-  render() {
-    return (
-      <SearchHeader>
-        <SearchForm onSubmit={this.handleSubmit}>
-          <SearchFormButton type="submit">
-            <CgSearch />
-            <SearchFormButtonLabel>Search</SearchFormButtonLabel>
-          </SearchFormButton>
 
-          <SearchFormInput
-            name="input"
-            type="text"
-            autocomplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-          />
-        </SearchForm>
-      </SearchHeader>
-    );
-  }
-}
+  return (
+    <SearchHeader>
+      <SearchForm onSubmit={handleSubmit}>
+        <SearchFormButton type="submit">
+          <CgSearch />
+          <SearchFormButtonLabel>Search</SearchFormButtonLabel>
+        </SearchFormButton>
+
+        <SearchFormInput
+          name="input"
+          type="text"
+          autocomplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+        />
+      </SearchForm>
+    </SearchHeader>
+  );
+};
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};

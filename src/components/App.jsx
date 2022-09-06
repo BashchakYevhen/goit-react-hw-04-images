@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { GlobalStyle } from 'globalStyle';
 import { Barstyle } from './App.style';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -7,89 +7,69 @@ import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 import { LoadMore } from './LoadMore/LoadMore';
 import { Modal } from './Modal/Modal';
 import { updateFetch } from '../service/fetch';
-export class App extends Component {
-  state = {
-    page: 1,
-    articles: [],
-    q: '',
-    showModal: false,
-    currentArticle: {},
-    isLoading: false,
-    errors: null,
-    totalArticles: null,
+
+export const App = () => {
+  const [page, setPage] = useState(1);
+  const [articles, setArticles] = useState([]);
+  const [q, setq] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [currentArticle, setCurrentArticle] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState(null);
+  const [totalArticles, setTotalArticles] = useState(null);
+  useEffect(() => {
+    if (q === '') {
+      return;
+    }
+    updateFetch(q, page)
+      .then(response => {
+        const nextArticles = response.data.hits;
+        setIsLoading(false);
+        setTotalArticles(response.data.total);
+        setArticles(prevState => [...prevState, ...nextArticles]);
+      })
+      .catch(error => setErrors(error));
+  }, [page, q]);
+
+  const onSubmit = search => {
+    setq(search);
+    setPage(1);
+    setArticles([]);
+  };
+  const onLoadMore = e => {
+    setPage(prevState => prevState + 1);
+    setIsLoading(true);
+  };
+  const dataForModal = (tags, largeImageURL) => {
+    setCurrentArticle({ tags, largeImageURL });
+  };
+  const toggleModal = () => {
+    setShowModal(prevState => !prevState);
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const { q, page } = this.state;
-    if (prevState.q !== q || prevState.page !== page) {
-      updateFetch(q, page)
-        .then(response => {
-          const prevArticles = this.state.articles;
-          const nextArticles = response.data.hits;
-          const allArticles = response.data.total;
-          this.setState({
-            totalArticles: allArticles,
-            isLoading: false,
-            articles: [...prevArticles, ...nextArticles],
-          });
-        })
-        .catch(error => this.setState({ errors: error }));
-    }
-  }
-  onSubmit = search => {
-    this.setState({
-      q: search,
-      page: 1,
-      articles: [],
-    });
-  };
-  onLoadMore = e => {
-    this.setState(state => ({
-      page: state.page + 1,
-      isLoading: true,
-    }));
-  };
-  dataForModal = (tags, largeImageURL) => {
-    this.setState({ currentArticle: { tags, largeImageURL } });
-  };
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
-  };
-  render() {
-    const {
-      articles,
-      showModal,
-      currentArticle,
-      isLoading,
-      errors,
-      totalArticles,
-    } = this.state;
-    return (
-      <Barstyle>
-        <Searchbar onSubmit={this.onSubmit} />
-        {articles.length > 0 && (
-          <>
-            <ImageGallery errors={errors}>
-              <ImageGalleryItem
-                articles={articles}
-                toggleModal={this.toggleModal}
-                dataForModal={this.dataForModal}
-              />
-            </ImageGallery>
-            {totalArticles > articles.length && totalArticles > 20 && (
-              <LoadMore onClick={this.onLoadMore} isLoading={isLoading} />
-            )}
-          </>
-        )}
-        {showModal && (
-          <Modal toggleModal={this.toggleModal}>
-            <img src={currentArticle.largeImageURL} alt={currentArticle.tags} />
-          </Modal>
-        )}
-        <GlobalStyle />
-      </Barstyle>
-    );
-  }
-}
+  return (
+    <Barstyle>
+      <Searchbar onSubmit={onSubmit} />
+      {articles.length > 0 && (
+        <>
+          <ImageGallery errors={errors}>
+            <ImageGalleryItem
+              articles={articles}
+              toggleModal={toggleModal}
+              dataForModal={dataForModal}
+            />
+          </ImageGallery>
+          {totalArticles > articles.length && totalArticles > 20 && (
+            <LoadMore onClick={onLoadMore} isLoading={isLoading} />
+          )}
+        </>
+      )}
+      {showModal && (
+        <Modal toggleModal={toggleModal}>
+          <img src={currentArticle.largeImageURL} alt={currentArticle.tags} />
+        </Modal>
+      )}
+      <GlobalStyle />
+    </Barstyle>
+  );
+};

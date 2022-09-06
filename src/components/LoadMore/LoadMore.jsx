@@ -1,3 +1,4 @@
+import { PropTypes } from 'prop-types';
 import { ThreeDots } from 'react-loader-spinner';
 import { LoadMoreButton } from './LoadMore.style';
 
@@ -25,4 +26,8 @@ export const LoadMore = ({ onClick, isLoading }) => {
       </LoadMoreButton>
     </>
   );
+};
+LoadMore.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
 };
